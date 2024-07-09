@@ -2,12 +2,42 @@
 from Bio import SeqIO
 import re
 import sys
+import os
+import argparse
 
-# get the full path to the file I want to clean
-file_path = "/scratch/forsythe/ERC_collaborations/Parasitoid_wasp_data/Leptopilina_boulard/ncbi_dataset/data/GCF_019393585.1/cds_from_genomic.fna"
+#Example command:
+#python NCBI_fasta_cleaning.py -i /scratch/forsythe/ERC_collaborations/Parasitoid_wasp_data/Data_downloads/Leptopilina_boulard/ncbi_dataset/data/GCF_019393585.1/cds_from_genomic.fna -o /scratch/forsythe/ERC_collaborations/Parasitoid_wasp_data/Wasp_genomics/example_data/Leptopilina_boulard_prot_CLEANED.fa
+
+# Set up an arg parse to get user arguments
+parser = argparse.ArgumentParser(description='script for running fasta cleaning')
+
+#Add arguments
+parser.add_argument('-i', '--input', type=str, metavar='', required=True, help='Full path to a CDS fasta file to be cleaned') 
+parser.add_argument('-o', '--output', type=str, metavar='', required=True, help='Full path to a new fasta file to be output (file should not exist before running)') 
+
+#Define the parser
+args = parser.parse_args()
+
+input=args.input
+output=args.output
+
+
+#Check to make sure input file exists
+if os.path.isfile(input):
+    print("Found input file!")
+else:
+    print("ERROR: Couldn't find input file. Check that your -i argument is correct")
+    sys.exit()
+
+#Check to make sure output file doesn't exist
+if os.path.isfile(output):
+    print("ERROR: output file already exists. Delete or rename existing file before running.")
+    sys.exit()
+else:
+    print(f"Output will be stored in: {output}")
 
 # Read the file in to python and store as a dictionary object
-input_file = open(file_path)
+input_file = open(input)
 my_dict = SeqIO.to_dict(SeqIO.parse(input_file, "fasta"))
 
 #temp_record=my_dict['lcl|NW_026138046.1_cds_XP_051175781.1_23824']
@@ -23,7 +53,7 @@ my_dict = SeqIO.to_dict(SeqIO.parse(input_file, "fasta"))
 #make a blank list
 check_list=[]
 
-file_handle=open("keeper_file.fasta", "a")
+file_handle=open(output, "a")
 
 for key in my_dict:
     #Subset the dictionary
@@ -80,7 +110,7 @@ for key in my_dict:
 
     check_list.append(prot_desc)
 
-
+file_handle.close()
     
 
 

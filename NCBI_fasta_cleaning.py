@@ -88,18 +88,20 @@ for key in my_dict:
         prot_id = "NA"
 
 
-    #NOTE: Still need to figure out how to remove isoform X11
+    #Ask if there is an isoform indicator and get only isoform X1
+
+    #Set a pattern to recognize only X1
+    pattern = r'isoform X1(?!\d)'
+
     if not prot_desc in check_list:
         #print(f"found duplicate: {id_desc} {prot_desc}")
         if "isoform X" in prot_desc:
-            keeper_bool=False
-            if "isoform X1" in prot_desc and not "isoform X11" in prot_desc:
-                #print(prot_desc)
+            match = re.search(pattern, prot_desc)
+            if match:
                 keeper_bool=True
             else:
                 keeper_bool=False
         else: 
-            #print(prot_desc)
             keeper_bool=True
     else:
         keeper_bool=False

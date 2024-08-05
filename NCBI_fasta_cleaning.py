@@ -14,12 +14,15 @@ parser = argparse.ArgumentParser(description='script for running fasta cleaning'
 #Add arguments
 parser.add_argument('-i', '--input', type=str, metavar='', required=True, help='Full path to a CDS fasta file to be cleaned') 
 parser.add_argument('-o', '--output', type=str, metavar='', required=True, help='Full path to a new fasta file to be output (file should not exist before running)') 
+parser.add_argument('-g', '--GCA', action='store_true', required=False, help='Add this flag to if your file is a "GCA" style file, which only includes "hypothetical protein" as a sequence descriptor')
+
 
 #Define the parser
 args = parser.parse_args()
 
 input=args.input
 output=args.output
+hypo_bool=args.GCA
 
 
 #Check to make sure input file exists
@@ -58,7 +61,7 @@ file_handle=open(output, "a")
 for key in my_dict:
     #Subset the dictionary
     temp_record=my_dict[key]
-
+    
     #Get the description and seq
     temp_desc=temp_record.description
     temp_seq=temp_record.seq
@@ -88,29 +91,37 @@ for key in my_dict:
         prot_id = "NA"
 
 
-    #Ask if there is an isoform indicator and get only isoform X1
-
-    #Set a pattern to recognize only X1
-    pattern = r'isoform X1(?!\d)'
-
-    if not prot_desc in check_list:
-        #print(f"found duplicate: {id_desc} {prot_desc}")
-        if "isoform X" in prot_desc:
-            match = re.search(pattern, prot_desc)
-            if match:
-                keeper_bool=True
-            else:
-                keeper_bool=False
-        else: 
-            keeper_bool=True
-    else:
-        keeper_bool=False
+    #Check whether we're in hypothetical protein mode
+    if not hypo_bool:
     
-    if keeper_bool:
+    #Ask if there is an isoform indicator and get only isoform X1
+    
+        #Set a pattern to recognize only X1
+        pattern = r'isoform X1(?!\d)'
+
+        if not prot_desc in check_list:
+            #print(f"found duplicate: {id_desc} {prot_desc}")
+            if "isoform X" in prot_desc:
+                match = re.search(pattern, prot_desc)
+                if match:
+                    keeper_bool=True
+                else:
+                    keeper_bool=False
+            else: 
+                keeper_bool=True
+        else:
+            keeper_bool=False
+        
+        if keeper_bool:
+            file_handle.write(">"+prot_id+"__"+prot_desc+"\n")
+            file_handle.write(str(temp_seq)+"\n")
+
+        check_list.append(prot_desc)
+    
+    #Run this only if it's a 'hypothetical protein' annotation file 
+    if hypo_bool:
         file_handle.write(">"+prot_id+"__"+prot_desc+"\n")
         file_handle.write(str(temp_seq)+"\n")
-
-    check_list.append(prot_desc)
 
 file_handle.close()
     
